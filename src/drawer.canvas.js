@@ -35,6 +35,14 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
         });
         var marksCc = marksCanvas.getContext('2d');
 
+        var selectionCanvas = document.createElement('canvas');
+        this.style(selectionCanvas, {
+            position: 'absolute',
+            zIndex: 4
+        });
+        var selectionCc = marksCanvas.getContext('2d');
+
+
         var wrapper = document.createElement('wave');
         this.style(wrapper, {
             position: 'relative'
@@ -42,15 +50,17 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
         wrapper.appendChild(waveCanvas);
         wrapper.appendChild(progressWave);
         wrapper.appendChild(marksCanvas);
+        wrapper.appendChild(selectionCanvas);
 
         this.container.appendChild(wrapper);
 
-        this.canvases = [ waveCanvas, progressCanvas, marksCanvas ];
+        this.canvases = [ waveCanvas, progressCanvas, marksCanvas, selectionCanvas ];
 
         this.waveCc = waveCc;
         this.progressCc = progressCc;
         this.progressWave = progressWave;
         this.marksCc = marksCc;
+        this.selectionCc = selectionCc;
     },
 
     updateWidth: function () {
@@ -99,5 +109,23 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
     removeMark: function (mark) {
         var x = Math.round(mark.percentage * this.width - mark.width / 2);
         this.marksCc.clearRect(x, 0, mark.width, this.height);
+    },
+
+    updateSelection: function(selection) {
+        if (!selection.start && !selection.end) {
+            this.selectionCc.clearRect(0, 0, this.width, this.height);
+        } else {
+            this.selectionCc.clearRect(0, 0, this.width, this.height);
+            this.selectionCc.fillStyle = selection.color;
+            var start = selection.start * this.width;
+            var end = (selection.end ? selection.end : selection.current) * this.width;
+            if (end < start) {
+                var tmp = start;
+                start = end;
+                end = tmp;
+            }            
+            this.selectionCc.fillRect(start, 0, end-start, this.height);
+        }
     }
+
 });

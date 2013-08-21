@@ -28,7 +28,8 @@ var WaveSurfer = {
         this.markers = {};
 
         this.createBackend();
-        this.bindClick();
+        //this.bindClick();
+        this.bindSelection();
 
         // Used to save the current volume when muting so we can
         // restore once unmuted
@@ -255,10 +256,32 @@ var WaveSurfer = {
      * Click to seek.
      */
     bindClick: function () {
-        var my = this;
+        /*var my = this;
         this.drawer.on('click', function (progress) {
             my.seekTo(progress);
+        });*/
+    },
+
+    selection: null,
+
+    bindSelection: function () {
+        var my = this;
+        this.selection = Object.create(WaveSurfer.Selection);
+        this.selection.on('update', function () {
+            my.drawer.updateSelection(my.selection);
         });
+
+
+        this.drawer.on('updateSelection', function (options) {
+            // handle mouseout event: if no end - we can remove selection 
+            var clear = WaveSurfer.util.nully(options['start']) 
+                          && WaveSurfer.util.nully(options['current']) 
+                          && WaveSurfer.util.nully(options['end']) 
+            if (!clear || (clear && WaveSurfer.util.nully(my.selection.end))) {
+                my.selection.update(options);    
+            }
+        });
+
     },
 
     bindMarks: function () {
@@ -278,6 +301,14 @@ var WaveSurfer = {
         });
     },
 
+    clearSelection: function() {
+        this.selection.update({
+            start: null,
+            current: null,
+            end: null
+        });
+    },
+
     empty: function () {
         this.stop();
         this.backend.loadEmpty();
@@ -285,6 +316,26 @@ var WaveSurfer = {
     }
 };
 
+WaveSurfer.Selection = {
+    start: null,
+    current: null,
+    end: null,
+    
+
+    color: 'rgba(250,241,0,0.5)',
+
+    update: function (options) {
+        WaveSurfer.util.extend(this, options);
+        this.fireEvent('update');
+        return this;
+    },
+
+    remove: function () {
+        this.fireEvent('remove');
+    }
+
+
+}
 
 /* Mark */
 WaveSurfer.Mark = {
@@ -324,8 +375,14 @@ WaveSurfer.util = {
 
     getId: function () {
         return 'wavesurfer_' + Math.random().toString(32).substring(2);
+    },
+
+    nully: function(value) {
+        return typeof value == "undefined" || value === null;
     }
+
 };
 
 WaveSurfer.util.extend(WaveSurfer, Observer);
 WaveSurfer.util.extend(WaveSurfer.Mark, Observer);
+WaveSurfer.util.extend(WaveSurfer.Selection, Observer);

@@ -35,14 +35,49 @@ WaveSurfer.Drawer = {
         });
     },
 
+    getProgress: function(e) {
+        var relX = e.offsetX;
+        if (null == relX) { relX = e.layerX; }
+        var progress = relX / this.scrollWidth;
+        return progress;
+    },
+
     bindClick: function () {
         var my = this;
-        this.container.addEventListener('click', function (e) {
-            var relX = e.offsetX;
-            if (null == relX) { relX = e.layerX; }
-            var progress = relX / my.scrollWidth;
 
-            my.fireEvent('click', progress);
+        // TODO:
+        /*this.container.addEventListener('click', function (e) {
+            my.fireEvent('click', my.getProgress(e));
+        }, false);
+        */
+
+        var fireSelectEvent = function(options) {
+            my.fireEvent('updateSelection', options)
+        };
+
+        this.container.addEventListener('mousedown', function(e) {
+            var progress = my.getProgress(e)
+            fireSelectEvent({ 
+                start: progress,
+                current: progress,
+                end: null
+            });
+        }, false);
+
+        this.container.addEventListener('mouseup', function(e) {
+            fireSelectEvent({ end: my.getProgress(e) });
+        }, false);
+
+        this.container.addEventListener('mouseout', function(e) {
+            fireSelectEvent({
+                start: null,
+                current: null,
+                end: null
+            });           
+        }, false);
+
+        this.container.addEventListener('mousemove', function(e) {
+            fireSelectEvent({ current: my.getProgress(e) });
         }, false);
     },
 
@@ -128,7 +163,9 @@ WaveSurfer.Drawer = {
 
     addMark: function (mark) {},
 
-    removeMark: function (mark) {}
+    removeMark: function (mark) {},
+
+    updateSelection: function(selection) {}
 };
 
 WaveSurfer.util.extend(WaveSurfer.Drawer, Observer);

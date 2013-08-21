@@ -7,10 +7,10 @@ var wavesurfer = Object.create(WaveSurfer);
 document.addEventListener('DOMContentLoaded', function () {
     var options = {
         container     : document.querySelector('#waveform'),
-        waveColor     : 'violet',
-        progressColor : 'purple',
-        loaderColor   : 'purple',
-        cursorColor   : 'navy',
+        waveColor     : '2197ff',
+        progressColor : 'lightgray',
+        loaderColor   : '2197ff',
+        cursorColor   : 'gray',
         markerWidth   : 2,
         skipLength    : 5
     };
@@ -88,7 +88,12 @@ wavesurfer.on('ready', function () {
 
         'toggle-mute': function () {
             wavesurfer.toggleMute();
+        },
+
+        'clearSelection': function () {
+            wavesurfer.clearSelection(); 
         }
+
     };
 
     document.addEventListener('keyup', function (e) {
@@ -97,7 +102,8 @@ wavesurfer.on('ready', function () {
             38: 'green-mark', // up
             40: 'red-mark',   // down
             37: 'back',       // left
-            39: 'forth'       // right
+            39: 'forth',      // right
+            27: 'clearSelection' // escape
         };
         if (e.keyCode in map) {
             var handler = eventHandlers[map[e.keyCode]];
@@ -106,12 +112,14 @@ wavesurfer.on('ready', function () {
         }
     });
 
+
     document.addEventListener('click', function (e) {
         var action = e.target.dataset && e.target.dataset.action;
         if (action && action in eventHandlers) {
             eventHandlers[action](e);
         }
     });
+
 });
 
 // Flash when reaching a mark
